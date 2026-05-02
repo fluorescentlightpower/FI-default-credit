@@ -1,29 +1,19 @@
 import pickle
-import pandas as pd
 from flask import Flask, jsonify, request
 import pika
 import json
+from src.inference.predict import predict_item
 
 RABBITMQ_HOST = "rabbitmq"
 QUEUE_NAME = "batch_predictions"
 
 app = Flask(__name__)
 
-with open('./models/model_v1.pkl', 'rb') as f:
+with open('../models/model_v1.pkl', 'rb') as f:
     artifact = pickle.load(f)
 
 model = artifact["model"]
 FEATURES = artifact["features"]
-
-def preprocess_input(data: dict) -> pd.DataFrame:
-    missing_features = [col for col in FEATURES if col not in data]
-
-    if missing_features:
-        raise ValueError(f"Missing features: {missing_features}")
-
-    row = {col: data[col] for col in FEATURES}
-
-    return pd.DataFrame([row])
 
 def send_to_queue(message: dict):
     connection = pika.BlockingConnection(
@@ -54,17 +44,11 @@ def predict():
         data = request.get_json()
 
         if data is None:
-            return jsonify({"error": "Request body must be JSON"}), 400
+            return jsonify({"error": "Request body must be a JSON"}), 400
 
-        X = preprocess_input(data)
+        result = predict_item(data, model, FEATURES)
 
-        prediction = int(model.predict(X)[0])
-        probability = float(model.predict_proba(X)[0, 1])
-
-        return jsonify({
-            "prediction": prediction,
-            "probability": probability
-        }), 200
+        return jsonify(result), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 400

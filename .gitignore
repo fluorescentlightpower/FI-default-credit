@@ -30,6 +30,3 @@ Thumbs.db
 
 # Docker
 *.pid
-
-# Models
-models/*.pkl
