@@ -1,15 +1,28 @@
 services:
   ml_service:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: credit_default_ml_service
+    image: fluorescent1800/fi_default_credit:1.0
+    container_name: fi_default_credit_ml_service
     expose:
       - "3031"
+    depends_on:
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: fi_default_credit_rabbitmq
+    ports:
+      - "15672:15672"
+
+  worker:
+    image: fluorescent1800/fi_default_credit:1.0
+    container_name: fi_default_credit_worker
+    command: ["python", "-m", "worker.worker"]
+    depends_on:
+      - rabbitmq
 
   nginx:
     image: nginx:1.25
-    container_name: credit_default_nginx
+    container_name: fi_default_credit_nginx
     ports:
       - "5000:80"
     volumes:

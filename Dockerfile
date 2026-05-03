@@ -13,6 +13,8 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 COPY app/ app/
 COPY models/ models/
+COPY worker/ worker/
+COPY src/ src/
 COPY uwsgi.ini .
 
 EXPOSE 3031

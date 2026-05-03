@@ -31,6 +31,7 @@ def train_model():
     model.fit(X_train, y_train)
 
     y_pred = model.predict(X_test)
+    # [:, 1] = probability for class 1 (will default)
     y_proba = model.predict_proba(X_test)[:, 1]
     acc = accuracy_score(y_test, y_pred)
     f1 = f1_score(y_test, y_pred)
